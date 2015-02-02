@@ -153,10 +153,23 @@ public class GameController : MonoBehaviour {
 		balls[tx, ty] = balls[fx, fy];
 		balls [fx, fy] = null;
 		moving = false;
+		ballToMove.SetFocus (false);
 		ballToMove = null;
 		floorToMove = null;
 		ResetFieldSelections ();
+		dropBalls (3, null); // Todo: change null to preselector
 	}
+
+	List<Vector2> IsLineAppears(Vector2 start)
+	{
+		int x = (int)start.x;
+		int y = (int)start.y;
+		BallColor color = balls [x, y].ballColor;
+		// Todo: create checking method
+		return null;
+	}
+
+
 
 	public void FloorTileClickHandler(int x, int y)
 	{
@@ -174,7 +187,7 @@ public class GameController : MonoBehaviour {
 			int dy = floorToMove.fieldY - ballToMove.fieldY;
 			int tx = (int)ballToMove.transform.position.x;//int tx = ballToMove.fieldX;
 			int ty = (int)ballToMove.transform.position.z;//int ty = ballToMove.fieldY;
-			/*
+
 			while (dx != 0)
 			{
 				if (dx > 0)
@@ -203,13 +216,13 @@ public class GameController : MonoBehaviour {
 				}
 				path.Add(new Vector3(tx, 0.5f, ty));
 			}
-			*/
-			path = FindPath(ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
+
+			/*path = FindPath(ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
 			if (path == null)
 			{
 				Debug.Log("NULL PATH");
 				return;
-			}
+			}*/
 			PrintPath(path, ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
 			ballToMove.AnimatePath(path);
 		}
