@@ -167,6 +167,7 @@ public class GameController : MonoBehaviour {
 			int dy = floorToMove.fieldY - ballToMove.fieldY;
 			int tx = (int)ballToMove.transform.position.x;//int tx = ballToMove.fieldX;
 			int ty = (int)ballToMove.transform.position.z;//int ty = ballToMove.fieldY;
+			/*
 			while (dx != 0)
 			{
 				if (dx > 0)
@@ -194,6 +195,13 @@ public class GameController : MonoBehaviour {
 					ty --;
 				}
 				path.Add(new Vector3(tx, 0.5f, ty));
+			}
+			*/
+			path = FindPath(ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
+			if (path == null)
+			{
+				Debug.Log("NULL PATH");
+				return;
 			}
 			PrintPath(path, ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
 			ballToMove.AnimatePath(path);
@@ -227,4 +235,50 @@ public class GameController : MonoBehaviour {
 	{
 		return false;
 	}
+
+	// ---------------------------------------------------------
+
+
+	List<Vector3> FindPath(int fromX, int fromY, int toX, int toY)
+	{
+		int[,] field = new int[horizontalSize, verticalSize];
+		for(int x = 0; x < horizontalSize; ++x)
+			for (int y = 0; y < verticalSize; ++y)
+			{
+				field[x, y] = (balls[x, y] == null) ? 1 : 2 ;
+			}
+		Point start = new Point ();
+		start.X = fromX;
+		start.Y = fromY;
+		Debug.Log ("Start - " + start.X + "," + start.Y);
+		Point goal = new Point ();
+		goal.X = toX;
+		goal.Y = toY;
+		Debug.Log ("Goal - " + goal.X + "," + goal.Y);
+		List<Point> path = AStar.FindPath(field, start, goal);
+		if (path == null)
+		{
+			Debug.Log ("PIZDETS NO WAY BLEAD");
+			return null;
+		}
+		else
+		{
+			List<Vector3> result = new List<Vector3>();
+			foreach(Point p in path)
+			{
+				result.Add(new Vector3(p.X - xOffset, 0.5f, p.Y - yOffset));
+			}
+			return result;
+		}
+	}
 }
+
+
+
+
+
+
+
+
+
+
