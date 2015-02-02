@@ -26,7 +26,7 @@ public class BallController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+		animator = GetComponent<Animator> ();
 	}
 	
 	// Update is called once per frame
@@ -59,11 +59,21 @@ public class BallController : MonoBehaviour {
 	{
 		this.path = path;
 		moving = true;
+
 	}
 
 	void OnMouseDown()
 	{
 		//Debug.Log (ballColor + " ball clicked at [" + fieldX + "," + fieldY + "]");
 		gameController.BallClickHandler (fieldX, fieldY);
+
+	}
+
+	public void SetFocus(bool focus)
+	{
+		if (focus)
+			animator.SetTrigger ("BallSelected");
+		else
+			animator.SetTrigger ("BallDeselected");
 	}
 }

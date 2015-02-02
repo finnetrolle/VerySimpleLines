@@ -122,7 +122,14 @@ public class GameController : MonoBehaviour {
 	public void BallClickHandler(int x, int y)
 	{
 		if (!moving)
+		{
+			if (ballToMove != null)
+			{
+				ballToMove.SetFocus(false);
+			}
 			ballToMove = balls [x, y];
+			ballToMove.SetFocus(true);
+		}
 		//if (balls[x,y] != null)
 		//{
 		//	Destroy(balls[x,y].gameObject);
