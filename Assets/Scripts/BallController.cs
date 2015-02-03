@@ -23,10 +23,12 @@ public class BallController : MonoBehaviour {
 
 	private bool moving = false;
 	private List<Vector3> path = null;
+	private AudioSource audio;
 
 	// Use this for initialization
 	void Start () {
 		animator = GetComponent<Animator> ();
+		audio = GetComponent<AudioSource> ();
 	}
 
 	void FixedUpdate()
@@ -40,6 +42,7 @@ public class BallController : MonoBehaviour {
 				{
 					transform.position = path[0];
 					path.RemoveAt(0);
+					audio.Play();
 				}
 			}
 			else

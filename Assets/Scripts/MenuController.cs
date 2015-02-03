@@ -11,7 +11,7 @@ public class MenuController : MonoBehaviour {
 		Application.LoadLevel ("GameScene");
 	}
 
-	void Awake()
+	void Start()
 	{
 		if (!PlayerPrefs.HasKey("HighScores"))
 			PlayerPrefs.SetInt("HighScores", 0);

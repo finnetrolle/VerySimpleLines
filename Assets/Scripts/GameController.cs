@@ -8,6 +8,13 @@ using AStar;
 
 public class GameController : MonoBehaviour {
 
+	public Camera mainCamera;
+
+	public AudioClip ballSelectedClip;
+	public AudioClip lineCleanedClip;
+	public AudioClip errorClip;
+	public AudioClip gameOverClip;
+
 	public GameObject floorTilePrefab;
 	public GameObject BallPrefab;
 	public GameObject gameOverObjects;
@@ -38,15 +45,20 @@ public class GameController : MonoBehaviour {
 	private BallController[,] balls;
 
 	private BallColor[] nextColors;
+	private AudioSource audio;
 
 
 	private int scores = 0;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
+		audio = GetComponent<AudioSource> ();
 		InitFloorTileController ();
 		InitBalls ();
 		gameOverObjects.SetActive (false);
+		float h2w = (float)(Screen.height) / (float)(Screen.width);
+		float camSize = 4.6f * h2w;
+		mainCamera.orthographicSize = camSize;
 	}
 
 	public void GoToMenu()
@@ -69,6 +81,9 @@ public class GameController : MonoBehaviour {
 
 	void GameOver()
 	{
+		audio.Stop ();
+		audio.clip = this.gameOverClip;
+		audio.Play ();
 		int hs = 0;
 		if (PlayerPrefs.HasKey("HighScores"))
 		{
@@ -178,6 +193,8 @@ public class GameController : MonoBehaviour {
 			}
 			ballToMove = balls [x, y];
 			ballToMove.SetFocus(true);
+			audio.clip = ballSelectedClip;
+			audio.Play ();
 		}
 		//if (balls[x,y] != null)
 		//{
@@ -276,6 +293,8 @@ public class GameController : MonoBehaviour {
 			BallController bc = balls[x, y];
 			balls[x, y] = null;
 			Destroy(bc.gameObject);
+			audio.clip = lineCleanedClip;
+			audio.Play();
 		}
 		return ballsCleared;
 	}
@@ -351,6 +370,8 @@ public class GameController : MonoBehaviour {
 				ballToMove.SetFocus(false);
 				ballToMove = null;
 				moving = false;
+				audio.clip = errorClip;
+				audio.Play ();
 			}
 			else
 			{
