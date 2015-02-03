@@ -28,11 +28,6 @@ public class BallController : MonoBehaviour {
 	void Start () {
 		animator = GetComponent<Animator> ();
 	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 
 	void FixedUpdate()
 	{
@@ -40,8 +35,8 @@ public class BallController : MonoBehaviour {
 		{
 			if (path.Count > 0)
 			{
-				transform.position = Vector3.Lerp(transform.position, path[0], 10f * Time.deltaTime);
-				if (Vector3.Distance(transform.position, path[0]) <= 0.2f )
+				transform.position = Vector3.Lerp(transform.position, path[0], 15f * Time.deltaTime);
+				if (Vector3.Distance(transform.position, path[0]) <= 0.3f )
 				{
 					transform.position = path[0];
 					path.RemoveAt(0);
@@ -59,14 +54,11 @@ public class BallController : MonoBehaviour {
 	{
 		this.path = path;
 		moving = true;
-
 	}
 
 	void OnMouseDown()
 	{
-		//Debug.Log (ballColor + " ball clicked at [" + fieldX + "," + fieldY + "]");
 		gameController.BallClickHandler (fieldX, fieldY);
-
 	}
 
 	public void SetFocus(bool focus)

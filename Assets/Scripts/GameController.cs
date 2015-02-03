@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using AStar;
 
 
 
@@ -8,6 +10,12 @@ public class GameController : MonoBehaviour {
 
 	public GameObject floorTilePrefab;
 	public GameObject BallPrefab;
+	public GameObject gameOverObjects;
+
+	public Text scoreText;
+	public Image gameoverImage;
+	public Text gameOverText;
+	public Text gameOverScoreText;
 
 	public Material BallRed;
 	public Material BallGreen;
@@ -31,10 +39,20 @@ public class GameController : MonoBehaviour {
 
 	private BallColor[] nextColors;
 
+
+	private int scores = 0;
+
 	// Use this for initialization
 	void Start () {
 		InitFloorTileController ();
 		InitBalls ();
+		gameOverObjects.SetActive (false);
+	}
+
+	public void GoToMenu()
+	{
+		GameOver ();
+		Application.LoadLevel ("MainMenuScene");
 	}
 
 	void InitBalls ()
@@ -49,8 +67,37 @@ public class GameController : MonoBehaviour {
 		dropBalls (5, null);
 	}
 
-	void dropBalls(int count, BallColor[] colorStack)
+	void GameOver()
 	{
+		int hs = 0;
+		if (PlayerPrefs.HasKey("HighScores"))
+		{
+			hs = PlayerPrefs.GetInt("HighScores");
+			if (scores > hs)
+			{
+				PlayerPrefs.SetInt ("HighScores", scores);
+			}
+		}
+		else 
+		{
+			PlayerPrefs.SetInt ("HighScores", scores);
+			hs = scores;
+		}
+		// change UI
+		gameOverObjects.SetActive (true);
+
+		gameOverScoreText.text = "Your score: " + scores + "\nHigh score: " + hs;
+	}
+
+	bool dropBalls(int count, BallColor[] colorStack)
+	{
+		if (GetFreeSpace() <= count)
+		{
+			Debug.Log ("DROP FAILED");
+			GameOver();
+			return false;
+		}
+
 		int toPlace = count;
 		while (toPlace > 0)
 		{
@@ -72,8 +119,10 @@ public class GameController : MonoBehaviour {
 					bc.ballColor = colorStack[toPlace];
 				SetBallMaterial(bc);
 				balls[x,y] = bc;
+				ClearLines(x, y);
 			}
 		}
+		return true;
 	}
 
 	int GetFreeSpace()
@@ -157,18 +206,129 @@ public class GameController : MonoBehaviour {
 		ballToMove = null;
 		floorToMove = null;
 		ResetFieldSelections ();
-		dropBalls (3, null); // Todo: change null to preselector
+
+		// clear if 5 in line
+		if (!ClearLines (tx, ty))
+			dropBalls (3, null); // Todo: change null to preselector
 	}
 
-	List<Vector2> IsLineAppears(Vector2 start)
+	bool ClearLines(int x, int y)
 	{
-		int x = (int)start.x;
-		int y = (int)start.y;
+		bool ballsCleared = false;
+		Point point = new Point (x, y);
 		BallColor color = balls [x, y].ballColor;
 		// Todo: create checking method
-		return null;
+		List<Point> a = null;
+		List<Point> b = null;
+		int alldrop = 0;
+		int drop = 0;
+		// Test vert
+		a = GetSameBallsInLine (point, 0, -1, horizontalSize, verticalSize);
+		b = GetSameBallsInLine (point, 0, 1, horizontalSize, verticalSize);
+		drop = a.Count + b.Count + 1;
+		if (drop >= 5)
+		{
+			ballsCleared = true;
+			alldrop += drop;
+			RemoveBalls(a);
+			RemoveBalls(b);
+		}
+		// Test Horiz
+		a = GetSameBallsInLine (point, -1, 0, horizontalSize, verticalSize);
+		b = GetSameBallsInLine (point, 1, 0, horizontalSize, verticalSize);
+		drop = a.Count + b.Count + 1;
+		if (drop >= 5)
+		{
+			ballsCleared = true;
+			alldrop += drop;
+			RemoveBalls(a);
+			RemoveBalls(b);
+		}
+		// Test Diag \
+		a = GetSameBallsInLine (point, 1, 1, horizontalSize, verticalSize);
+		b = GetSameBallsInLine (point, -1, -1, horizontalSize, verticalSize);
+		drop = a.Count + b.Count + 1;
+		if (drop >= 5)
+		{
+			ballsCleared = true;
+			alldrop += drop;
+			RemoveBalls(a);
+			RemoveBalls(b);
+		}
+		// Test Diag /
+		a = GetSameBallsInLine (point, -1, 1, horizontalSize, verticalSize);
+		b = GetSameBallsInLine (point, 1, -1, horizontalSize, verticalSize);
+		drop = a.Count + b.Count + 1;
+		if (drop >= 5)
+		{
+			ballsCleared = true;
+			alldrop += drop;
+			RemoveBalls(a);
+			RemoveBalls(b);
+		}
+		Debug.Log ("DROPPED: " + alldrop);
+		if (ballsCleared)
+		{
+			int mod = alldrop - 4; //(X - 5 + 1)
+			int pts = alldrop * mod;
+			this.scores += pts;
+			UpdateUI ();
+			BallController bc = balls[x, y];
+			balls[x, y] = null;
+			Destroy(bc.gameObject);
+		}
+		return ballsCleared;
 	}
 
+	void UpdateUI()
+	{
+		scoreText.text = "Score: " + scores;
+	}
+
+	void RemoveBalls(List<Point> points)
+	{
+		foreach(Point p in points)
+		{
+			BallController bc = balls[p.X, p.Y];
+			balls[p.X, p.Y] = null;
+			Destroy (bc.gameObject);
+		}
+	}
+
+	List<Point> GetSameBallsInLine(Point start, int dx, int dy, int maxX, int maxY)
+	{
+		List<Point> result = new List<Point> ();
+		BallColor color = balls [start.X, start.Y].ballColor;
+		Point next = new Point (start.X + dx, start.Y + dy);
+		while ((next.X >= 0) && (next.X < maxX) && (next.Y >= 0) && (next.Y < maxY))
+		{
+			if ((balls[next.X, next.Y] != null) && (balls[next.X, next.Y].ballColor == color))
+				result.Add(new Point(next.X, next.Y));
+			else
+				break;
+			next.X += dx;
+			next.Y += dy;
+		}
+		return result;
+	}
+
+	/*
+	void int GetSameBallsCount(int startx, int starty, int dx, int dy, int maxX, int maxY)
+	{
+		int sum = 0;
+		BallColor color = balls [startx, starty].ballColor;
+		int x = startx + dx;
+		int y = starty + dy;
+		while ((x >= 0) && (x < maxX) && (y >= 0) && (y < maxY))
+		{
+			if (balls[x, y].ballColor == color)
+				sum++;
+			else
+				break;
+		}
+		return sum;
+	}
+	*/
 
 
 	public void FloorTileClickHandler(int x, int y)
@@ -181,51 +341,45 @@ public class GameController : MonoBehaviour {
 			}
 			fields [x, y].transform.localScale = new Vector3 (0.9f, 0.01f, 0.9f);
 			floorToMove = fields[x, y];
-			moving = true;
+
 			List<Vector3> path = new List<Vector3>();
-			int dx = floorToMove.fieldX - ballToMove.fieldX;
-			int dy = floorToMove.fieldY - ballToMove.fieldY;
-			int tx = (int)ballToMove.transform.position.x;//int tx = ballToMove.fieldX;
-			int ty = (int)ballToMove.transform.position.z;//int ty = ballToMove.fieldY;
-
-			while (dx != 0)
-			{
-				if (dx > 0)
-				{
-					dx --;
-					tx ++;
-				}
-				else
-				{
-					dx ++;
-					tx --;
-				}
-				path.Add(new Vector3(tx, 0.5f, ty));
-			}
-			while (dy != 0)
-			{
-				if (dy > 0)
-				{
-					dy --;
-					ty ++;
-				}
-				else
-				{
-					dy ++;
-					ty --;
-				}
-				path.Add(new Vector3(tx, 0.5f, ty));
-			}
-
-			/*path = FindPath(ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
+			path = AStarFind(ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
 			if (path == null)
 			{
-				Debug.Log("NULL PATH");
-				return;
-			}*/
-			PrintPath(path, ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
-			ballToMove.AnimatePath(path);
+				// drop user's event chain
+				floorToMove = null;
+				ballToMove.SetFocus(false);
+				ballToMove = null;
+				moving = false;
+			}
+			else
+			{
+				// animate!
+				ballToMove.AnimatePath(path);
+				moving = true;
+			}
 		}
+	}
+
+	List<Vector3> AStarFind(int fx, int fy, int tx, int ty)
+	{
+		// create field
+		int[,] field = new int[horizontalSize, verticalSize];
+		for(int x = 0; x < horizontalSize; ++x)
+			for (int y = 0; y < verticalSize; ++y)
+		{
+			field[x, y] = (balls[x, y] == null) ? 0 : 1 ;
+		}
+		// do find
+		List<AStar.Point> path = AStar.AStar.Find (new AStar.Point (fx, fy), new AStar.Point (tx, ty), AStar.AStar.GenerateField (field));
+		if (path == null)
+			return null;
+		List<Vector3> result = new List<Vector3> ();
+		foreach(AStar.Point p in path)
+		{
+			result.Add(new Vector3(p.X + xOffset, 0f, p.Y + yOffset));
+		}
+		return result;
 	}
 
 	void PrintPath(List<Vector3> path, int fromx, int fromy, int tox, int toy)
@@ -246,50 +400,9 @@ public class GameController : MonoBehaviour {
 		}
 	}
 	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
 	bool IsFieldEmpty(int fx, int fy)
 	{
 		return false;
-	}
-
-	// ---------------------------------------------------------
-
-
-	List<Vector3> FindPath(int fromX, int fromY, int toX, int toY)
-	{
-		int[,] field = new int[horizontalSize, verticalSize];
-		for(int x = 0; x < horizontalSize; ++x)
-			for (int y = 0; y < verticalSize; ++y)
-			{
-				field[x, y] = (balls[x, y] == null) ? 1 : 2 ;
-			}
-		Point start = new Point ();
-		start.X = fromX;
-		start.Y = fromY;
-		Debug.Log ("Start - " + start.X + "," + start.Y);
-		Point goal = new Point ();
-		goal.X = toX;
-		goal.Y = toY;
-		Debug.Log ("Goal - " + goal.X + "," + goal.Y);
-		List<Point> path = AStar.FindPath(field, start, goal);
-		if (path == null)
-		{
-			Debug.Log ("PIZDETS NO WAY BLEAD");
-			return null;
-		}
-		else
-		{
-			List<Vector3> result = new List<Vector3>();
-			foreach(Point p in path)
-			{
-				result.Add(new Vector3(p.X - xOffset, 0.5f, p.Y - yOffset));
-			}
-			return result;
-		}
 	}
 }
 

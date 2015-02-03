@@ -1,120 +1,118 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
-public class AStar 
+
+namespace AStar
 {
-	public static List<Point> FindPath(int[,] field, Point start, Point goal)
-	{
-		// Шаг 1.
-		var closedSet = new Collection<PathNode>();
-		var openSet = new Collection<PathNode>();
-		// Шаг 2.
-		PathNode startNode = new PathNode()
-		{
-			Position = start,
-			CameFrom = null,
-			PathLengthFromStart = 0,
-			HeuristicEstimatePathLength = GetHeuristicPathLength(start, goal)
-		};
-		openSet.Add(startNode);
-		while (openSet.Count > 0)
-		{
-			// Шаг 3.
-			var currentNode = openSet.OrderBy(node => 
-			                                  node.EstimateFullPathLength).First();
-			// Шаг 4.
-			if (currentNode.Position.equals(goal))
-			//if (currentNode.Position == goal)
-				return GetPathForNode(currentNode);
-			// Шаг 5.
-			openSet.Remove(currentNode);
-			closedSet.Add(currentNode);
-			// Шаг 6.
-			foreach (var neighbourNode in GetNeighbours(currentNode, goal, field))
-			{
-				// Шаг 7.
-				if (closedSet.Count(node => node.Position.equals(neighbourNode.Position)) > 0)
-				//if (closedSet.Count(node => node.Position == neighbourNode.Position) > 0)
-					continue;
-				var openNode = openSet.FirstOrDefault(node =>
-				                                      node.Position.equals (neighbourNode.Position));
-				//var openNode = openSet.FirstOrDefault(node =>
-				//                                      node.Position == neighbourNode.Position);
-				// Шаг 8.
-				if (openNode == null)
-					openSet.Add(neighbourNode);
-				else
-					if (openNode.PathLengthFromStart > neighbourNode.PathLengthFromStart)
-				{
-					// Шаг 9.
-					openNode.CameFrom = currentNode;
-					openNode.PathLengthFromStart = neighbourNode.PathLengthFromStart;
-				}
-			}
-		}
-		// Шаг 10.
-		return null;
-	}
+    class AStar
+    {
+        public static Field GenerateField(int[,] cells, int[] walkingValues = null)
+        {
+            if ((walkingValues == null) || (walkingValues.Length == 0))
+                return new Field(cells);
+            else
+            {
+                Field f = new Field(cells, walkingValues[0]);
+                for (int i = 1; i < walkingValues.Length; ++i)
+                    f.AddWalkableValue(walkingValues[i]);
+                return f;
+            }
+        }
 
-	private static int GetDistanceBetweenNeighbours()
-	{
-		return 1;
-	}
+        public static List<Point> Find(Point from, Point to, Field field)
+        {
+            PathNodeList closed = new PathNodeList();
+            PathNodeList opened = new PathNodeList();
 
-	private static int GetHeuristicPathLength(Point from, Point to)
-	{
-		return Math.Abs(from.X - to.X) + Math.Abs(from.Y - to.Y);
-	}
+            PathNode start = new PathNode(from, 0, to);
+            opened.AddPathNode(start);
 
-	private static Collection<PathNode> GetNeighbours(PathNode pathNode, 
-	                                                  Point goal, int[,] field)
-	{
-		var result = new Collection<PathNode>();
-		
-		// Соседними точками являются соседние по стороне клетки.
-		Point[] neighbourPoints = new Point[4];
-		neighbourPoints[0] = new Point(pathNode.Position.X + 1, pathNode.Position.Y);
-		neighbourPoints[1] = new Point(pathNode.Position.X - 1, pathNode.Position.Y);
-		neighbourPoints[2] = new Point(pathNode.Position.X, pathNode.Position.Y + 1);
-		neighbourPoints[3] = new Point(pathNode.Position.X, pathNode.Position.Y - 1);
-		
-		foreach (var point in neighbourPoints)
-		{
-			// Проверяем, что не вышли за границы карты.
-			if (point.X < 0 || point.X >= field.GetLength(0))
-				continue;
-			if (point.Y < 0 || point.Y >= field.GetLength(1))
-				continue;
-			// Проверяем, что по клетке можно ходить.
-			if ((field[point.X, point.Y] != 0) && (field[point.X, point.Y] != 1))
-				continue;
-			// Заполняем данные для точки маршрута.
-			var neighbourNode = new PathNode()
-			{
-				Position = point,
-				CameFrom = pathNode,
-				PathLengthFromStart = pathNode.PathLengthFromStart +
-				GetDistanceBetweenNeighbours(),
-				HeuristicEstimatePathLength = GetHeuristicPathLength(point, goal)
-			};
-			result.Add(neighbourNode);
-		}
-		return result;
-	}
+            // search childs of start
+            List<PathNode> children = start.CreateChildsHV(to, field);
+            foreach(PathNode child in children)
+                opened.AddPathNode(child);
+            // move start
+            closed.AddPathNode(opened.PullPathNode(start.Location));
 
-	private static List<Point> GetPathForNode(PathNode pathNode)
-	{
-		var result = new List<Point>();
-		var currentNode = pathNode;
-		while (currentNode != null)
-		{
-			result.Add(currentNode.Position);
-			currentNode = currentNode.CameFrom;
-		}
-		result.Reverse();
-		return result;
-	}
+            PathNode next = opened.GetNodeWithBestFValue();
+            while (next.Location != to)
+            {
+                children = next.CreateChildsHV(to, field);
+                closed.AddPathNode(opened.PullPathNode(next.Location));
+                foreach (PathNode node in children)
+                {
+                    if (closed.GetNodeByLocation(node.Location) == null)
+                    {
+                        opened.AddPathNode(node);
+                    }
+                }                
+                next = opened.GetNodeWithBestFValue();
+                if (next == null)
+                    break;
+            }
+
+            if (next == null)
+                return null;
+
+            List<Point> result = new List<Point>();
+            while (next.Parent != null)
+            {
+                result.Insert(0, next.Location);
+                next = next.Parent;
+            }
+
+            return result;
+
+        }
+
+        public static List<Point> FindPath(Point from, Point to, Field field)
+        {
+            Console.WriteLine(field);
+            // generate lists
+            PathNodeList closed = new PathNodeList();
+            PathNodeList opened = new PathNodeList();
+            // make start pathNode and add it into opened list
+            PathNode start = new PathNode(from, 0, to);
+            opened.AddPathNode(start);
+            Console.WriteLine("Step 1 completed with " + start.ToString());
+            Console.WriteLine("Starting rec");
+            FindPath(start, to, opened, closed, field);
+            // step last
+            // output endpoint
+            PathNode end = closed.GetNodeByLocation(to);
+            if (end != null)
+                Console.WriteLine("End " + end);
+            else
+                Console.WriteLine("NO WAY!");
+            //end.PrintPath();
+            return null;
+        }
+
+        private static void FindPath(PathNode current, Point goal, PathNodeList opened, PathNodeList closed, Field field)
+        {
+            Console.WriteLine("FindPath for " + current);
+            // move current from opened to closed
+            Console.WriteLine("O -> C : ");
+            closed.AddPathNode(opened.PullPathNode(current.Location));
+            // if we're in goal point - stop recursion
+            if (current.Location == goal)
+            {
+                return;
+            }
+            // get all childs for current
+            List<PathNode> childs = current.CreateChildsHV(goal, field);
+            Console.WriteLine("Making childs...");
+            foreach(PathNode child in childs)
+            {
+                if (closed.GetNodeByLocation(child.Location) == null)
+                { 
+                    // if we have no same point in closed list - add into open list
+                    opened.AddPathNode(child);
+                    FindPath(child, goal, opened, closed, field);
+                }
+            }
+        }
+    }
 }
