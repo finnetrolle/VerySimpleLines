@@ -5,6 +5,6 @@ public class DestroyOnClick : MonoBehaviour {
 
 	void OnMouseDown()
 	{
-		Debug.Log (gameObject + " is clicked!");
+	//	Debug.Log (gameObject + " is clicked!");
 	}
 }

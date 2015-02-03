@@ -24,7 +24,7 @@ namespace AStar
             YSize = fields.GetUpperBound(1) + 1;
             this.fields = fields;
             AddWalkableValue(defaultWalkableValue);
-            Console.WriteLine("XSize = " + XSize + "; YSize = " + YSize);
+            //Console.WriteLine("XSize = " + XSize + "; YSize = " + YSize);
         }
 
         public bool IsPointInside(Point point)

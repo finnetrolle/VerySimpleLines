@@ -93,7 +93,7 @@ public class GameController : MonoBehaviour {
 	{
 		if (GetFreeSpace() <= count)
 		{
-			Debug.Log ("DROP FAILED");
+			//Debug.Log ("DROP FAILED");
 			GameOver();
 			return false;
 		}
@@ -111,7 +111,7 @@ public class GameController : MonoBehaviour {
 				BallController bc = obj.GetComponent<BallController>();
 				bc.fieldX = x;
 				bc.fieldY = y;
-				Debug.Log ("Ball dropped at [" + x + "," + y + "]");
+				//Debug.Log ("Ball dropped at [" + x + "," + y + "]");
 				bc.gameController = this;
 				if (colorStack == null)
 					bc.ballColor = (BallColor)Random.Range(0, 6);
@@ -192,7 +192,7 @@ public class GameController : MonoBehaviour {
 
 	public void BallMovingComplete()
 	{
-		Debug.Log ("Ball completes his path");
+		//Debug.Log ("Ball completes his path");
 		int fx = ballToMove.fieldX;
 		int fy = ballToMove.fieldY;
 		int tx = floorToMove.fieldX;
@@ -216,7 +216,7 @@ public class GameController : MonoBehaviour {
 	{
 		bool ballsCleared = false;
 		Point point = new Point (x, y);
-		BallColor color = balls [x, y].ballColor;
+//		BallColor color = balls [x, y].ballColor;
 		// Todo: create checking method
 		List<Point> a = null;
 		List<Point> b = null;
@@ -266,7 +266,7 @@ public class GameController : MonoBehaviour {
 			RemoveBalls(a);
 			RemoveBalls(b);
 		}
-		Debug.Log ("DROPPED: " + alldrop);
+		//Debug.Log ("DROPPED: " + alldrop);
 		if (ballsCleared)
 		{
 			int mod = alldrop - 4; //(X - 5 + 1)
@@ -384,11 +384,11 @@ public class GameController : MonoBehaviour {
 
 	void PrintPath(List<Vector3> path, int fromx, int fromy, int tox, int toy)
 	{
-		Debug.Log ("Printing path from [" + fromx + "," + fromy + "] to [" + tox + "," + toy + "]:");
-		foreach(Vector3 v in path)
-		{
-			Debug.Log(">> [" + v.x + "," + v.z + "]");
-		}
+		//Debug.Log ("Printing path from [" + fromx + "," + fromy + "] to [" + tox + "," + toy + "]:");
+		//foreach(Vector3 v in path)
+		//{
+			//Debug.Log(">> [" + v.x + "," + v.z + "]");
+		//}
 	}
 
 	void ResetFieldSelections()

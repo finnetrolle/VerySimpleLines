@@ -67,52 +67,5 @@ namespace AStar
 
         }
 
-        public static List<Point> FindPath(Point from, Point to, Field field)
-        {
-            Console.WriteLine(field);
-            // generate lists
-            PathNodeList closed = new PathNodeList();
-            PathNodeList opened = new PathNodeList();
-            // make start pathNode and add it into opened list
-            PathNode start = new PathNode(from, 0, to);
-            opened.AddPathNode(start);
-            Console.WriteLine("Step 1 completed with " + start.ToString());
-            Console.WriteLine("Starting rec");
-            FindPath(start, to, opened, closed, field);
-            // step last
-            // output endpoint
-            PathNode end = closed.GetNodeByLocation(to);
-            if (end != null)
-                Console.WriteLine("End " + end);
-            else
-                Console.WriteLine("NO WAY!");
-            //end.PrintPath();
-            return null;
-        }
-
-        private static void FindPath(PathNode current, Point goal, PathNodeList opened, PathNodeList closed, Field field)
-        {
-            Console.WriteLine("FindPath for " + current);
-            // move current from opened to closed
-            Console.WriteLine("O -> C : ");
-            closed.AddPathNode(opened.PullPathNode(current.Location));
-            // if we're in goal point - stop recursion
-            if (current.Location == goal)
-            {
-                return;
-            }
-            // get all childs for current
-            List<PathNode> childs = current.CreateChildsHV(goal, field);
-            Console.WriteLine("Making childs...");
-            foreach(PathNode child in childs)
-            {
-                if (closed.GetNodeByLocation(child.Location) == null)
-                { 
-                    // if we have no same point in closed list - add into open list
-                    opened.AddPathNode(child);
-                    FindPath(child, goal, opened, closed, field);
-                }
-            }
-        }
     }
 }

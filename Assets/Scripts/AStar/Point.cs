@@ -29,7 +29,7 @@ namespace AStar
             return false;
         }
 
-        public static bool operator !=(Point a, Point b)
+        public static bool operator!= (Point a, Point b)
         {
             if (a == b)
                 return false;
