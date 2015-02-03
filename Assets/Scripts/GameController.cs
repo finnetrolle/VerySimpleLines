@@ -8,65 +8,61 @@ using AStar;
 
 public class GameController : MonoBehaviour {
 
+	// Inspector-based publics
 	public Camera mainCamera;
-
-	public AudioClip ballSelectedClip;
-	public AudioClip lineCleanedClip;
-	public AudioClip errorClip;
-	public AudioClip gameOverClip;
-
+	public AudioController audio;
+	public BallBuilderController ballBuilder;
 	public GameObject floorTilePrefab;
-	public GameObject BallPrefab;
 	public GameObject gameOverObjects;
 
+	// GUI Text objects
 	public Text scoreText;
-	public Image gameoverImage;
-	public Text gameOverText;
 	public Text gameOverScoreText;
 
-	public Material BallRed;
-	public Material BallGreen;
-	public Material BallBlue;
-	public Material BallYellow;
-	public Material BallTeal;
-	public Material BallOrange;
-	public Material BallViolet;
-
+	// game field settings 
 	public int verticalSize = 9;
 	public int horizontalSize = 9;
 	public int xOffset;
 	public int yOffset;
 
+	// moving privates
 	private BallController ballToMove = null;
 	private FloorTileController floorToMove = null;
 	private bool moving = false;
 
+	// game field privates
 	private FloorTileController[,] fields;
 	private BallController[,] balls;
 
+	// color stack 
+	// Todo: implement this fucking color stack
 	private BallColor[] nextColors;
-	private AudioSource audio;
 
-
+	// scores!!!
 	private int scores = 0;
 
 	// Use this for initialization
 	void Awake () {
-		audio = GetComponent<AudioSource> ();
 		InitFloorTileController ();
 		InitBalls ();
 		gameOverObjects.SetActive (false);
 		float h2w = (float)(Screen.height) / (float)(Screen.width);
-		float camSize = 4.6f * h2w;
+		float camSize = 4.6f * h2w; // magic 4.6 calculated for android. Deal with it!
 		mainCamera.orthographicSize = camSize;
 	}
 
+	/// <summary>
+	/// Method goes to main menu (nice way to use SendMessage)
+	/// </summary>
 	public void GoToMenu()
 	{
 		GameOver ();
 		Application.LoadLevel ("MainMenuScene");
 	}
 
+	/// <summary>
+	/// Method inits balls array
+	/// </summary>
 	void InitBalls ()
 	{
 		balls = new BallController[verticalSize, horizontalSize];
@@ -79,11 +75,12 @@ public class GameController : MonoBehaviour {
 		dropBalls (5, null);
 	}
 
+	/// <summary>
+	/// Method stops the game
+	/// </summary>
 	void GameOver()
 	{
-		audio.Stop ();
-		audio.clip = this.gameOverClip;
-		audio.Play ();
+		audio.Play (AudioController.SoundClip.GAMEOVER);
 		int hs = 0;
 		if (PlayerPrefs.HasKey("HighScores"))
 		{
@@ -104,11 +101,16 @@ public class GameController : MonoBehaviour {
 		gameOverScoreText.text = "Your score: " + scores + "\nHigh score: " + hs;
 	}
 
+	/// <summary>
+	/// Method spawns balls on game field
+	/// </summary>
+	/// <returns><c>true</c>, if balls was dropped, <c>false</c> otherwise.</returns>
+	/// <param name="count">Number of balls to spawn</param>
+	/// <param name="colorStack">Link to a color stack for spawn</param>
 	bool dropBalls(int count, BallColor[] colorStack)
 	{
 		if (GetFreeSpace() <= count)
 		{
-			//Debug.Log ("DROP FAILED");
 			GameOver();
 			return false;
 		}
@@ -120,26 +122,23 @@ public class GameController : MonoBehaviour {
 			int y = Random.Range (0, verticalSize);
 			if (balls[x, y] == null) 
 			{
-				// can place here
 				toPlace --;
-				GameObject obj = (GameObject)GameObject.Instantiate(BallPrefab, new Vector3(x + xOffset, 0.5f, y + yOffset), new Quaternion(90f, 90f, 0f, 0f));
-				BallController bc = obj.GetComponent<BallController>();
-				bc.fieldX = x;
-				bc.fieldY = y;
-				//Debug.Log ("Ball dropped at [" + x + "," + y + "]");
-				bc.gameController = this;
+				BallColor color;
 				if (colorStack == null)
-					bc.ballColor = (BallColor)Random.Range(0, 6);
+					color = (BallColor)Random.Range (0, 6);
 				else
-					bc.ballColor = colorStack[toPlace];
-				SetBallMaterial(bc);
-				balls[x,y] = bc;
+					color = colorStack[toPlace];
+				balls[x,y] = ballBuilder.InstantiateBall(color, x, y, xOffset, yOffset, this);
 				ClearLines(x, y);
 			}
 		}
 		return true;
 	}
 
+	/// <summary>
+	/// Gets the free space on game field
+	/// </summary>
+	/// <returns>The free cells count</returns>
 	int GetFreeSpace()
 	{
 		int cnt = 0;
@@ -150,6 +149,9 @@ public class GameController : MonoBehaviour {
 		return verticalSize * horizontalSize - cnt;
 	}
 
+	/// <summary>
+	/// Inits the floor tile controller array (Game field).
+	/// </summary>
 	void InitFloorTileController()
 	{
 		fields = new FloorTileController[horizontalSize, verticalSize];
@@ -168,21 +170,12 @@ public class GameController : MonoBehaviour {
 		ResetFieldSelections ();
 	}
 
-	void SetBallMaterial(BallController bc)
-	{
-		MeshRenderer renderer = bc.gameObject.GetComponent<MeshRenderer> ();
-		switch (bc.ballColor)
-		{
-			case BallColor.BALL_RED: renderer.material = BallRed; break;
-			case BallColor.BALL_GREEN: renderer.material = BallGreen; break;
-			case BallColor.BALL_BLUE: renderer.material = BallBlue; break;
-			case BallColor.BALL_ORANGE: renderer.material = BallOrange; break;
-			case BallColor.BALL_TEAL: renderer.material = BallTeal; break;
-			case BallColor.BALL_VIOLET: renderer.material = BallViolet; break;
-			case BallColor.BALL_YELLOW: renderer.material = BallYellow; break;
-		}
-	}
 
+	/// <summary>
+	/// Handling Ball click
+	/// </summary>
+	/// <param name="x">The x coordinate of ball</param>
+	/// <param name="y">The y coordinate of ball</param>
 	public void BallClickHandler(int x, int y)
 	{
 		if (!moving)
@@ -193,117 +186,91 @@ public class GameController : MonoBehaviour {
 			}
 			ballToMove = balls [x, y];
 			ballToMove.SetFocus(true);
-			audio.clip = ballSelectedClip;
-			audio.Play ();
+			audio.Play(AudioController.SoundClip.BALL_SELECT);
 		}
-		//if (balls[x,y] != null)
-		//{
-		//	Destroy(balls[x,y].gameObject);
-		//	balls[x,y] = null;
-		//}
-		//if (GetFreeSpace() > 3)
-		//	dropBalls (3, null);
-		//else
-		//	Debug.Log ("GAME OVER");
 	}
 
+	/// <summary>
+	/// Handling ball moving complete event
+	/// </summary>
 	public void BallMovingComplete()
 	{
-		//Debug.Log ("Ball completes his path");
-		int fx = ballToMove.fieldX;
-		int fy = ballToMove.fieldY;
-		int tx = floorToMove.fieldX;
-		int ty = floorToMove.fieldY;
-		ballToMove.fieldX = tx;
-		ballToMove.fieldY = ty;
-		balls[tx, ty] = balls[fx, fy];
-		balls [fx, fy] = null;
+		MoveBall (ballToMove.fieldX, ballToMove.fieldY, floorToMove.fieldX, floorToMove.fieldY);
+		ballToMove.fieldX = floorToMove.fieldX;
+		ballToMove.fieldY = floorToMove.fieldY;
 		moving = false;
 		ballToMove.SetFocus (false);
+		ResetFieldSelections ();
+		if (!ClearLines (ballToMove.fieldX, ballToMove.fieldY))
+			dropBalls (3, null); // Todo: change null to preselector
 		ballToMove = null;
 		floorToMove = null;
-		ResetFieldSelections ();
-
-		// clear if 5 in line
-		if (!ClearLines (tx, ty))
-			dropBalls (3, null); // Todo: change null to preselector
 	}
 
+	/// <summary>
+	/// Method tries to remove one line - horizontal, vertical or diagonal, based on deltas (in both directions)
+	/// </summary>
+	/// <returns>Length of a line if it is bigger than 4</returns>
+	/// <param name="point">Center (base) point</param>
+	/// <param name="dx1">Delta X for 1st direstion</param>
+	/// <param name="dy1">Delta Y for 1st direstion</param>
+	/// <param name="dx2">Delta X for 2nd direstion</param>
+	/// <param name="dy2">Delta Y for 2nd direstion</param>
+	int RemoveLine(Point point, int dx1, int dy1, int dx2, int dy2)
+	{
+		List<Point> a = GetSameBallsInLine (point, dx1, dy1, horizontalSize, verticalSize);
+		List<Point> b = GetSameBallsInLine (point, dx2, dy2, horizontalSize, verticalSize);
+		int drop = a.Count + b.Count + 1;
+		if (drop >= 5)
+		{
+			RemoveBalls(a);
+			RemoveBalls(b);
+			return drop;
+		}
+		return 0;
+	}
+
+	/// <summary>
+	/// Method tries to find in horizontal, vertical and diagonal lines line of 5 and more same balls and delete them
+	/// </summary>
+	/// <returns><c>true</c>, if lines was cleared, <c>false</c> otherwise.</returns>
+	/// <param name="x">The x coordinate of center (base) point</param>
+	/// <param name="y">The y coordinate of center (base) point</param>
 	bool ClearLines(int x, int y)
 	{
-		bool ballsCleared = false;
 		Point point = new Point (x, y);
-//		BallColor color = balls [x, y].ballColor;
-		// Todo: create checking method
-		List<Point> a = null;
-		List<Point> b = null;
-		int alldrop = 0;
-		int drop = 0;
-		// Test vert
-		a = GetSameBallsInLine (point, 0, -1, horizontalSize, verticalSize);
-		b = GetSameBallsInLine (point, 0, 1, horizontalSize, verticalSize);
-		drop = a.Count + b.Count + 1;
-		if (drop >= 5)
+		int alldrop = 
+				RemoveLine(point, 0, -1, 0, 1) +
+				RemoveLine(point, -1, 0, 1, 0) +
+				RemoveLine(point, 1, 1, -1, -1) +
+				RemoveLine(point, -1, 1, 1, -1);
+		if (alldrop > 0)
 		{
-			ballsCleared = true;
-			alldrop += drop;
-			RemoveBalls(a);
-			RemoveBalls(b);
-		}
-		// Test Horiz
-		a = GetSameBallsInLine (point, -1, 0, horizontalSize, verticalSize);
-		b = GetSameBallsInLine (point, 1, 0, horizontalSize, verticalSize);
-		drop = a.Count + b.Count + 1;
-		if (drop >= 5)
-		{
-			ballsCleared = true;
-			alldrop += drop;
-			RemoveBalls(a);
-			RemoveBalls(b);
-		}
-		// Test Diag \
-		a = GetSameBallsInLine (point, 1, 1, horizontalSize, verticalSize);
-		b = GetSameBallsInLine (point, -1, -1, horizontalSize, verticalSize);
-		drop = a.Count + b.Count + 1;
-		if (drop >= 5)
-		{
-			ballsCleared = true;
-			alldrop += drop;
-			RemoveBalls(a);
-			RemoveBalls(b);
-		}
-		// Test Diag /
-		a = GetSameBallsInLine (point, -1, 1, horizontalSize, verticalSize);
-		b = GetSameBallsInLine (point, 1, -1, horizontalSize, verticalSize);
-		drop = a.Count + b.Count + 1;
-		if (drop >= 5)
-		{
-			ballsCleared = true;
-			alldrop += drop;
-			RemoveBalls(a);
-			RemoveBalls(b);
-		}
-		//Debug.Log ("DROPPED: " + alldrop);
-		if (ballsCleared)
-		{
-			int mod = alldrop - 4; //(X - 5 + 1)
-			int pts = alldrop * mod;
-			this.scores += pts;
-			UpdateUI ();
+			// destroy starter ball
 			BallController bc = balls[x, y];
 			balls[x, y] = null;
 			Destroy(bc.gameObject);
-			audio.clip = lineCleanedClip;
-			audio.Play();
+
+			this.scores += (alldrop - 4) * alldrop;
+			UpdateUI ();
+			audio.Play(AudioController.SoundClip.LINE_DESTROYED);
+			return true;
 		}
-		return ballsCleared;
+		return false;
 	}
 
+	/// <summary>
+	/// Updates the UI (scores text)
+	/// </summary>
 	void UpdateUI()
 	{
 		scoreText.text = "Score: " + scores;
 	}
 
+	/// <summary>
+	/// Removes the balls from balls[,] array
+	/// </summary>
+	/// <param name="points">List of coordinates of balls to remove</param>
 	void RemoveBalls(List<Point> points)
 	{
 		foreach(Point p in points)
@@ -314,6 +281,15 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Method returns list of coordinates of balls with same color in direction based on dx,dy
+	/// </summary>
+	/// <returns>List of Points</returns>
+	/// <param name="start">base point</param>
+	/// <param name="dx">delta x</param>
+	/// <param name="dy">delta y</param>
+	/// <param name="maxX">maximal x</param>
+	/// <param name="maxY">maximal y</param>
 	List<Point> GetSameBallsInLine(Point start, int dx, int dy, int maxX, int maxY)
 	{
 		List<Point> result = new List<Point> ();
@@ -331,25 +307,11 @@ public class GameController : MonoBehaviour {
 		return result;
 	}
 
-	/*
-	void int GetSameBallsCount(int startx, int starty, int dx, int dy, int maxX, int maxY)
-	{
-		int sum = 0;
-		BallColor color = balls [startx, starty].ballColor;
-		int x = startx + dx;
-		int y = starty + dy;
-		while ((x >= 0) && (x < maxX) && (y >= 0) && (y < maxY))
-		{
-			if (balls[x, y].ballColor == color)
-				sum++;
-			else
-				break;
-		}
-		return sum;
-	}
-	*/
-
-
+	/// <summary>
+	/// Method handles user's click on floor tile
+	/// </summary>
+	/// <param name="x">The x coordinate of tile</param>
+	/// <param name="y">The y coordinate of tile</param>
 	public void FloorTileClickHandler(int x, int y)
 	{
 		if ((!moving) && (ballToMove != null)) 
@@ -370,8 +332,7 @@ public class GameController : MonoBehaviour {
 				ballToMove.SetFocus(false);
 				ballToMove = null;
 				moving = false;
-				audio.clip = errorClip;
-				audio.Play ();
+				audio.Play (AudioController.SoundClip.ERROR);
 			}
 			else
 			{
@@ -382,6 +343,14 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Method uses A* algorhitm from built-in AStar namespace to find best path
+	/// </summary>
+	/// <returns>Shortest path from Start point to End point</returns>
+	/// <param name="fx">Start point x</param>
+	/// <param name="fy">Start point y</param>
+	/// <param name="tx">End point x</param>
+	/// <param name="ty">End point y</param>
 	List<Vector3> AStarFind(int fx, int fy, int tx, int ty)
 	{
 		// create field
@@ -403,15 +372,9 @@ public class GameController : MonoBehaviour {
 		return result;
 	}
 
-	void PrintPath(List<Vector3> path, int fromx, int fromy, int tox, int toy)
-	{
-		//Debug.Log ("Printing path from [" + fromx + "," + fromy + "] to [" + tox + "," + toy + "]:");
-		//foreach(Vector3 v in path)
-		//{
-			//Debug.Log(">> [" + v.x + "," + v.z + "]");
-		//}
-	}
-
+	/// <summary>
+	/// Resets the fields scale (selection)
+	/// </summary>
 	void ResetFieldSelections()
 	{
 		Vector3 normalScale = new Vector3 (1f, 0.01f, 1f);
@@ -420,11 +383,20 @@ public class GameController : MonoBehaviour {
 			ftc.transform.localScale = normalScale;
 		}
 	}
-	
-	bool IsFieldEmpty(int fx, int fy)
+
+	/// <summary>
+	/// Moves the ball link from one cell into another
+	/// </summary>
+	/// <param name="fromX">From x.</param>
+	/// <param name="fromY">From y.</param>
+	/// <param name="toX">To x.</param>
+	/// <param name="toY">To y.</param>
+	void MoveBall(int fromX, int fromY, int toX, int toY)
 	{
-		return false;
+		balls [toX, toY] = balls [fromX, fromY];
+		balls [fromX, fromY] = null;
 	}
+
 }
 
 

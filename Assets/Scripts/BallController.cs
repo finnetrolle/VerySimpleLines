@@ -37,7 +37,7 @@ public class BallController : MonoBehaviour {
 		{
 			if (path.Count > 0)
 			{
-				transform.position = Vector3.Lerp(transform.position, path[0], 15f * Time.deltaTime);
+				transform.position = Vector3.Lerp(transform.position, path[0], (8f + path.Count) * Time.deltaTime);
 				if (Vector3.Distance(transform.position, path[0]) <= 0.3f )
 				{
 					transform.position = path[0];
