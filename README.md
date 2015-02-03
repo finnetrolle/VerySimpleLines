@@ -8,5 +8,8 @@ This game is a clone of "Lines 98".
 
 # Builds #
 
-Last web build http://trollsmedjan.ru/VerySimpleLines.html
-Last Android APK http://trollsmedjan.ru/VerySimpleLines.apk
+* Last web build http://trollsmedjan.ru/VerySimpleLines.html
+* Last Android APK http://trollsmedjan.ru/VerySimpleLines.apk
+
+# Want to add a task? #
+You can add a task here - https://bitbucket.org/finnetrolle/verysimplelines/issues/new
