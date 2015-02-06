@@ -36,19 +36,35 @@ public class GameController : MonoBehaviour {
 
 	// color stack 
 	// Todo: implement this fucking color stack
-	private BallColor[] nextColors;
+	private BallColor[] nextColors = new BallColor[3];
+	private BallController[] nextColorsBalls = new BallController[3];
 
 	// scores!!!
 	private int scores = 0;
+	private Condition condition = Condition.IDLE;
+	private List<BallController> nextBalls;
+
+	private enum Condition
+	{
+		IDLE,
+		BALL_SELECTED,
+		BALL_MOVING,
+		GAME_OVER
+	}
 
 	// Use this for initialization
 	void Awake () {
+		float d1 = Time.time;
 		InitFloorTileController ();
+		float d2 = Time.time;
 		InitBalls ();
+		float d3 = Time.time;
+		Debug.Log ("Times: " + (d2-d1) + ", " + (d3-d2));
 		gameOverObjects.SetActive (false);
 		float h2w = (float)(Screen.height) / (float)(Screen.width);
 		float camSize = 4.6f * h2w; // magic 4.6 calculated for android. Deal with it!
 		mainCamera.orthographicSize = camSize;
+		condition = Condition.IDLE;
 	}
 
 	/// <summary>
@@ -71,8 +87,10 @@ public class GameController : MonoBehaviour {
 			{
 				balls[x,y] = null;
 			}
-
-		dropBalls (5, null);
+		nextBalls = PlaceNextBalls (5, balls, horizontalSize, verticalSize);
+		ActivateNextBalls (nextBalls, balls, horizontalSize, verticalSize);
+		nextBalls = PlaceNextBalls (3, balls, horizontalSize, verticalSize);
+		//dropBalls (5, null);
 	}
 
 	/// <summary>
@@ -101,6 +119,66 @@ public class GameController : MonoBehaviour {
 		gameOverScoreText.text = "Your score: " + scores + "\nHigh score: " + hs;
 	}
 
+	List<Point> GetFreeCells(BallController[,] balls, int maxX, int maxY)
+	{
+		List<Point> result = new List<Point> ();
+		for (int x = 0; x < maxX; ++x)
+			for (int y = 0; y < maxY; ++y)
+				if (balls[x, y] == null)
+					result.Add(new Point(x, y));
+		return result;
+	}
+
+	List<BallController> PlaceNextBalls(int ballsCount, BallController[,] balls, int maxX, int maxY, bool autoActivate = false)
+	{
+		List<Point> freeCells = GetFreeCells (balls, maxX, maxY);
+		if (freeCells.Count <= ballsCount)
+		{
+			// Signal to gameover
+			Debug.Log (freeCells.Count + " " + ballsCount);
+			return null;
+		}
+		List<BallController> result = new List<BallController> ();
+		int numberToAdd = ballsCount;
+		while (numberToAdd > 0)
+		{
+			int index = Random.Range (0, freeCells.Count);
+			Point position = freeCells[index];
+			freeCells.RemoveAt(index);
+			BallController bc = ballBuilder.InstantiateBall((BallColor)(Random.Range (0, 6)), position.X, position.Y, xOffset, yOffset, this);
+			result.Add(bc);
+			if (autoActivate)
+			{
+				balls[position.X, position.Y] = bc;
+				bc.ActivateBall();
+			}
+			numberToAdd --;
+		}
+		return result;
+	}
+
+	void ActivateNextBalls(List<BallController> newBalls, BallController[,] balls, int maxX, int maxY)
+	{
+		int reCreate = 0;
+		// for every newBall check space availability
+		foreach (BallController bc in newBalls)
+		{
+			if (balls[bc.fieldX, bc.fieldY] == null)
+			{
+				balls[bc.fieldX, bc.fieldY] = bc;
+				bc.ActivateBall();
+			}
+			else 
+			{
+				reCreate ++;
+				Destroy(bc.gameObject);
+			}
+		}
+		// if have balls to repos - repos
+		PlaceNextBalls (reCreate, balls, maxX, maxY, true);
+	}
+
+	/*
 	/// <summary>
 	/// Method spawns balls on game field
 	/// </summary>
@@ -134,6 +212,7 @@ public class GameController : MonoBehaviour {
 		}
 		return true;
 	}
+	*/
 
 	/// <summary>
 	/// Gets the free space on game field
@@ -202,7 +281,15 @@ public class GameController : MonoBehaviour {
 		ballToMove.SetFocus (false);
 		ResetFieldSelections ();
 		if (!ClearLines (ballToMove.fieldX, ballToMove.fieldY))
-			dropBalls (3, null); // Todo: change null to preselector
+		{
+			// we here when balls not cleared and it's time to activate preBalls
+			ActivateNextBalls(nextBalls, balls, horizontalSize, verticalSize);
+			// and create new nextBalls
+			nextBalls = PlaceNextBalls(3, balls, horizontalSize, verticalSize);
+			if (nextBalls == null)
+				GameOver();
+			//	dropBalls (3, null); // Todo: change null to preselector
+		}
 		ballToMove = null;
 		floorToMove = null;
 	}
@@ -320,7 +407,7 @@ public class GameController : MonoBehaviour {
 			{
 				return;
 			}
-			fields [x, y].transform.localScale = new Vector3 (0.9f, 0.01f, 0.9f);
+			fields [x, y].transform.localScale = new Vector3 (1f, 0.01f, 1f);
 			floorToMove = fields[x, y];
 
 			List<Vector3> path = new List<Vector3>();

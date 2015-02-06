@@ -20,19 +20,28 @@ public class BallController : MonoBehaviour {
 	public int fieldX;
 	public int fieldY;
 	public GameController gameController;
+	public bool activated = false;
 
 	private bool moving = false;
 	private List<Vector3> path = null;
 	private AudioSource audio;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		animator = GetComponent<Animator> ();
 		audio = GetComponent<AudioSource> ();
 	}
 
+	public void ActivateBall()
+	{
+		this.activated = true;
+		animator.SetTrigger ("BallActivated");
+	}
+
 	void FixedUpdate()
 	{
+		if (!activated)
+			return;
 		if (moving)
 		{
 			if (path.Count > 0)
@@ -61,7 +70,10 @@ public class BallController : MonoBehaviour {
 
 	void OnMouseDown()
 	{
-		gameController.BallClickHandler (fieldX, fieldY);
+		if (activated)
+			gameController.BallClickHandler (fieldX, fieldY);
+		else 
+			gameController.FloorTileClickHandler(fieldX, fieldY);
 	}
 
 	public void SetFocus(bool focus)
