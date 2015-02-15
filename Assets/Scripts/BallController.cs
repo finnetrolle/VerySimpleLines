@@ -25,11 +25,13 @@ public class BallController : MonoBehaviour {
 	private bool moving = false;
 	private List<Vector3> path = null;
 	private AudioSource audio;
+	private ParticleSystem particles;
 
 	// Use this for initialization
 	void Awake () {
 		animator = GetComponent<Animator> ();
 		audio = GetComponent<AudioSource> ();
+		particles = GetComponentInChildren<ParticleSystem> ();
 	}
 
 	public void ActivateBall()
@@ -66,6 +68,21 @@ public class BallController : MonoBehaviour {
 	{
 		this.path = path;
 		moving = true;
+	}
+
+	public void ActivateBallDestruction()
+	{
+		animator.StopPlayback ();
+		animator.SetTrigger ("BallDestroyed");
+	}
+
+	public void DestroyBall()
+	{
+		animator.StopPlayback ();
+		transform.localScale = new Vector3 (0.01f, 0.01f, 0.01f);
+		particles.Play ();
+
+		Destroy (this.gameObject, 0.5f);
 	}
 
 	void OnMouseDown()

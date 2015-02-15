@@ -44,6 +44,9 @@ public class GameController : MonoBehaviour {
 	private Condition condition = Condition.IDLE;
 	private List<BallController> nextBalls;
 
+	//
+	private List<BallController> ballsToDestroy = new List<BallController>();
+
 	private enum Condition
 	{
 		IDLE,
@@ -74,6 +77,18 @@ public class GameController : MonoBehaviour {
 	{
 		GameOver ();
 		Application.LoadLevel ("MainMenuScene");
+	}
+
+	private void addBallToDestroyList(BallController ball) 
+	{
+		ballsToDestroy.Add (ball);
+	}
+
+	private void DestroyBallsToDestroy()
+	{
+		foreach (BallController ball in ballsToDestroy)
+			ball.ActivateBallDestruction();
+		ballsToDestroy.Clear();
 	}
 
 	/// <summary>
@@ -149,12 +164,20 @@ public class GameController : MonoBehaviour {
 			result.Add(bc);
 			if (autoActivate)
 			{
-				balls[position.X, position.Y] = bc;
-				bc.ActivateBall();
+				ActivateBallAndCheckDestroySolution(bc);
+				//balls[position.X, position.Y] = bc;
+				//bc.ActivateBall();
 			}
 			numberToAdd --;
 		}
 		return result;
+	}
+
+	void ActivateBallAndCheckDestroySolution(BallController bc) 
+	{
+		balls [bc.fieldX, bc.fieldY] = bc;
+		bc.ActivateBall ();
+		ClearLines (bc.fieldX, bc.fieldY);
 	}
 
 	void ActivateNextBalls(List<BallController> newBalls, BallController[,] balls, int maxX, int maxY)
@@ -165,8 +188,9 @@ public class GameController : MonoBehaviour {
 		{
 			if (balls[bc.fieldX, bc.fieldY] == null)
 			{
-				balls[bc.fieldX, bc.fieldY] = bc;
-				bc.ActivateBall();
+				ActivateBallAndCheckDestroySolution(bc);
+				//balls[bc.fieldX, bc.fieldY] = bc;
+				//bc.ActivateBall();
 			}
 			else 
 			{
@@ -336,7 +360,10 @@ public class GameController : MonoBehaviour {
 			// destroy starter ball
 			BallController bc = balls[x, y];
 			balls[x, y] = null;
-			Destroy(bc.gameObject);
+			addBallToDestroyList(bc);
+			DestroyBallsToDestroy();
+			//bc.ActivateBallDestruction();
+			//Destroy(bc.gameObject);
 
 			this.scores += (alldrop - 4) * alldrop;
 			UpdateUI ();
@@ -364,7 +391,9 @@ public class GameController : MonoBehaviour {
 		{
 			BallController bc = balls[p.X, p.Y];
 			balls[p.X, p.Y] = null;
-			Destroy (bc.gameObject);
+			addBallToDestroyList(bc);
+			//bc.ActivateBallDestruction();
+			//Destroy (bc.gameObject);
 		}
 	}
 
