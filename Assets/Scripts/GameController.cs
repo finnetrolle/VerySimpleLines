@@ -8,6 +8,8 @@ using AStar;
 
 public class GameController : MonoBehaviour {
 
+	public GooglePlayController google;
+
 	// Inspector-based publics
 	public Camera mainCamera;
 	public AudioController audio;
@@ -79,6 +81,18 @@ public class GameController : MonoBehaviour {
 		Application.LoadLevel ("MainMenuScene");
 	}
 
+	public void GoToAchievements()
+	{
+		//GameOver ();
+		google.ShowAchievementsUI ();
+	}
+
+	public void GoToLeaderboard()
+	{
+		//GameOver ();
+		google.ShowLeaderboardUI ();
+	}
+
 	private void addBallToDestroyList(BallController ball) 
 	{
 		ballsToDestroy.Add (ball);
@@ -132,6 +146,8 @@ public class GameController : MonoBehaviour {
 		gameOverObjects.SetActive (true);
 
 		gameOverScoreText.text = "Your score: " + scores + "\nHigh score: " + hs;
+
+		google.WriteScore (scores);
 	}
 
 	List<Point> GetFreeCells(BallController[,] balls, int maxX, int maxY)
@@ -365,7 +381,27 @@ public class GameController : MonoBehaviour {
 			//bc.ActivateBallDestruction();
 			//Destroy(bc.gameObject);
 
-			this.scores += (alldrop - 4) * alldrop;
+			int plus = (alldrop - 4) * alldrop;
+			if (scores == 0)
+				google.ActivateAchievementVFLC();
+			this.scores += plus;
+			// ACHIEVEMENTS SECTION
+			if (this.scores >= 100)
+				google.ActivateAchievement100();
+			if (this.scores >= 200)
+				google.ActivateAchievement200();
+			if (this.scores >= 300)
+				google.ActivateAchievement300();
+			if (alldrop > 5)
+				google.ActivateAchievementTC();
+			if (alldrop >= 9)
+				google.ActivateAchievementVTC();
+			if (alldrop >= 17)
+				google.ActivateAchievementInT();
+			if (alldrop >= 29)
+				google.ActivateAchievementImT();
+
+
 			UpdateUI ();
 			audio.Play(AudioController.SoundClip.LINE_DESTROYED);
 			return true;

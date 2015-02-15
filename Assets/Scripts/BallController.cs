@@ -72,7 +72,7 @@ public class BallController : MonoBehaviour {
 
 	public void ActivateBallDestruction()
 	{
-		animator.StopPlayback ();
+		//animator.StopPlayback ();
 		animator.SetTrigger ("BallDestroyed");
 	}
 
