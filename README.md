@@ -4,7 +4,7 @@ First attempt to make a game from scratch with Unity.
 This game is a clone of "Lines 98".
 
 # Version #
-0.6.0 Beta
+0.7.1 Beta
 
 # Builds #
 
