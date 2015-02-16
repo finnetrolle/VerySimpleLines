@@ -1,4 +1,6 @@
-![c10a7f10.jpg](https://bitbucket.org/repo/kA5zMr/images/262529846-c10a7f10.jpg)# Very Simple Lines #
+# Very Simple Lines #
+
+![c10a7f10.jpg](https://bitbucket.org/repo/kA5zMr/images/262529846-c10a7f10.jpg)
 
 First attempt to make a game from scratch with Unity.
 This game is a clone of "Lines 98".
