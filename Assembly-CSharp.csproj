@@ -158,6 +158,7 @@
      <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\GooglePlayController.cs" />
      <Compile Include="Assets\Scripts\MenuController.cs" />
+     <Compile Include="Assets\Scripts\PreferencesSingleton.cs" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values\wallet_attrs.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-uz-rUZ\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values\admob_strings.xml" />

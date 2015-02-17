@@ -8,6 +8,7 @@ public class GooglePlayController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
 		PlayGamesClientConfiguration config = new PlayGamesClientConfiguration.Builder()
 				.Build();
 		

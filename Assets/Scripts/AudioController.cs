@@ -27,6 +27,8 @@ public class AudioController : MonoBehaviour {
 
 	public void Play(SoundClip soundClip)
 	{
+		if (PreferencesSingleton.Instance.Sounds == PreferencesSingleton.SETTINGS_OFF)
+			return;
 		player.Stop ();
 		switch (soundClip)
 		{

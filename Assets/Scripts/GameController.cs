@@ -84,13 +84,15 @@ public class GameController : MonoBehaviour {
 	public void GoToAchievements()
 	{
 		//GameOver ();
-		google.ShowAchievementsUI ();
+		PreferencesSingleton.Instance.ShowAchievementsUI ();
+		//google.ShowAchievementsUI ();
 	}
 
 	public void GoToLeaderboard()
 	{
 		//GameOver ();
-		google.ShowLeaderboardUI ();
+		PreferencesSingleton.Instance.ShowLeaderboardUI ();
+		//google.ShowLeaderboardUI ();
 	}
 
 	private void addBallToDestroyList(BallController ball) 
@@ -129,25 +131,9 @@ public class GameController : MonoBehaviour {
 	{
 		audio.Play (AudioController.SoundClip.GAMEOVER);
 		int hs = 0;
-		if (PlayerPrefs.HasKey("HighScores"))
-		{
-			hs = PlayerPrefs.GetInt("HighScores");
-			if (scores > hs)
-			{
-				PlayerPrefs.SetInt ("HighScores", scores);
-			}
-		}
-		else 
-		{
-			PlayerPrefs.SetInt ("HighScores", scores);
-			hs = scores;
-		}
-		// change UI
+		PreferencesSingleton.Instance.SaveHighScores (scores);
 		gameOverObjects.SetActive (true);
-
-		gameOverScoreText.text = "Your score: " + scores + "\nHigh score: " + hs;
-
-		google.WriteScore (scores);
+		gameOverScoreText.text = "Your score: " + scores + "\nHigh score: " + PreferencesSingleton.Instance.GetHighScores();
 	}
 
 	List<Point> GetFreeCells(BallController[,] balls, int maxX, int maxY)
@@ -217,42 +203,6 @@ public class GameController : MonoBehaviour {
 		// if have balls to repos - repos
 		PlaceNextBalls (reCreate, balls, maxX, maxY, true);
 	}
-
-	/*
-	/// <summary>
-	/// Method spawns balls on game field
-	/// </summary>
-	/// <returns><c>true</c>, if balls was dropped, <c>false</c> otherwise.</returns>
-	/// <param name="count">Number of balls to spawn</param>
-	/// <param name="colorStack">Link to a color stack for spawn</param>
-	bool dropBalls(int count, BallColor[] colorStack)
-	{
-		if (GetFreeSpace() <= count)
-		{
-			GameOver();
-			return false;
-		}
-
-		int toPlace = count;
-		while (toPlace > 0)
-		{
-			int x = Random.Range (0, horizontalSize);
-			int y = Random.Range (0, verticalSize);
-			if (balls[x, y] == null) 
-			{
-				toPlace --;
-				BallColor color;
-				if (colorStack == null)
-					color = (BallColor)Random.Range (0, 6);
-				else
-					color = colorStack[toPlace];
-				balls[x,y] = ballBuilder.InstantiateBall(color, x, y, xOffset, yOffset, this);
-				ClearLines(x, y);
-			}
-		}
-		return true;
-	}
-	*/
 
 	/// <summary>
 	/// Gets the free space on game field
@@ -383,23 +333,24 @@ public class GameController : MonoBehaviour {
 
 			int plus = (alldrop - 4) * alldrop;
 			if (scores == 0)
-				google.ActivateAchievementVFLC();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_VERY_FIRST_LINE_CRUSHED);
 			this.scores += plus;
 			// ACHIEVEMENTS SECTION
 			if (this.scores >= 100)
-				google.ActivateAchievement100();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.SCORES_ONE_HUNDRED);
 			if (this.scores >= 200)
-				google.ActivateAchievement200();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.SCORES_MASTER);
 			if (this.scores >= 300)
-				google.ActivateAchievement300();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.SCORES_GURU);
 			if (alldrop > 5)
-				google.ActivateAchievementTC();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_TRICKY_CRUSHER);
 			if (alldrop >= 9)
-				google.ActivateAchievementVTC();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_VERY_TRICKY_CRUSHER);
 			if (alldrop >= 17)
-				google.ActivateAchievementInT();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_INCREDIBLE_TRICKSTER);
 			if (alldrop >= 29)
-				google.ActivateAchievementImT();
+				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_IMPOSSIBLE_TRICKSTER);
+
 
 
 			UpdateUI ();

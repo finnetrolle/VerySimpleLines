@@ -13,8 +13,7 @@ public class MenuController : MonoBehaviour {
 
 	void Start()
 	{
-		if (!PlayerPrefs.HasKey("HighScores"))
-			PlayerPrefs.SetInt("HighScores", 0);
-		highScoreText.text = "High score: " + PlayerPrefs.GetInt("HighScores");
+		PreferencesSingleton.Instance.SignIn ();
+		highScoreText.text = "High score: " + PreferencesSingleton.Instance.GetHighScores ();
 	}
 }
