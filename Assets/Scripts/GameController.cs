@@ -78,7 +78,7 @@ public class GameController : MonoBehaviour {
 	public void GoToMenu()
 	{
 		GameOver ();
-		Application.LoadLevel ("MainMenuScene");
+		Application.LoadLevel ("ManuScene");
 	}
 
 	public void GoToAchievements()
@@ -335,21 +335,8 @@ public class GameController : MonoBehaviour {
 			if (scores == 0)
 				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_VERY_FIRST_LINE_CRUSHED);
 			this.scores += plus;
-			// ACHIEVEMENTS SECTION
-			if (this.scores >= 100)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.SCORES_ONE_HUNDRED);
-			if (this.scores >= 200)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.SCORES_MASTER);
-			if (this.scores >= 300)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.SCORES_GURU);
-			if (alldrop > 5)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_TRICKY_CRUSHER);
-			if (alldrop >= 9)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_VERY_TRICKY_CRUSHER);
-			if (alldrop >= 17)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_INCREDIBLE_TRICKSTER);
-			if (alldrop >= 29)
-				PreferencesSingleton.Instance.GainAchievement(PreferencesSingleton.TRICKSTER_IMPOSSIBLE_TRICKSTER);
+			PreferencesSingleton.Instance.GainAchievements(alldrop, this.scores);
+
 
 
 
@@ -359,6 +346,8 @@ public class GameController : MonoBehaviour {
 		}
 		return false;
 	}
+
+
 
 	/// <summary>
 	/// Updates the UI (scores text)

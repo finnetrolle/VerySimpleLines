@@ -1,17 +1,20 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GooglePlayController.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GameController.cs">
     <Files>
-      <File FileName="Assets\Scripts\GooglePlayController.cs" Line="19" Column="25" />
+      <File FileName="Assets\Scripts\GoogleSingletonInitializer.cs" Line="9" Column="3" />
+      <File FileName="Assets\Scripts\GooglePlayController.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\AStar\PathNode.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\GameController.cs" Line="96" Column="57" />
+      <File FileName="Assets\Scripts\GameController.cs" Line="81" Column="29" />
       <File FileName="Assets\Scripts\DestroyOnClick.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\BallController.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\FloorTileController.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\AStar\AStar.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\MenuController.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\MenuController.cs" Line="11" Column="39" />
       <File FileName="Assets\Scripts\AudioController.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\BallBuilderController.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\PreferencesSingleton.cs" Line="166" Column="1" />
+      <File FileName="Assets\Scripts\EventHandler.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

@@ -154,9 +154,11 @@
      <Compile Include="Assets\Scripts\BallBuilderController.cs" />
      <Compile Include="Assets\Scripts\BallController.cs" />
      <Compile Include="Assets\Scripts\DestroyOnClick.cs" />
+     <Compile Include="Assets\Scripts\EventHandler.cs" />
      <Compile Include="Assets\Scripts\FloorTileController.cs" />
      <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\GooglePlayController.cs" />
+     <Compile Include="Assets\Scripts\GoogleSingletonInitializer.cs" />
      <Compile Include="Assets\Scripts\MenuController.cs" />
      <Compile Include="Assets\Scripts\PreferencesSingleton.cs" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values\wallet_attrs.xml" />
